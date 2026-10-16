@@ -108,6 +108,9 @@ python experiments/run_entropy.py --variant double --epsilon-h 0 --epsilon-o 0 -
 python experiments/compare_entropy.py results/entropy_comparison/runs.csv
 ```
 
+运行完成后会在终端打印 raw / repaired 两张对比表，并保存 `comparison.txt`。
+表中列出各污染率下的平均后悔值、种子间标准差、平均耗时和分数变量数。
+
 `--epsilon-h` 是 Objective 1 的质量熵容差；代码使用 `H(z) <= N * epsilon_h`，而 `H_bin(o) <= epsilon_o` 不乘 N。对数为自然对数，`0 log 0 = 0`；实际熵值按精确表达式检查，导数在端点附近截断到 1e-12 以便局部求解。原约束全部保留，内部使用 `a_ij = pi_ij / p_i` 改善数值尺度，输出 JSON 恢复为 pi。
 
 `runs.csv` 明确区分 `raw` 与 `repaired`：前者保留连续解，后者按 z 排序取 K 个代表，对 o>0.5 的非代表按数值排序、在预算内作硬删除，再固定 z/o 用 LP 重拟合运输。因此 repaired 是公平比较硬支持集的一种确定规则，并非连续模型的精确最优恢复。记录支持数、分数 z/o 数、剔除质量、污染与合法质量删除、尾部保留、熵、可行性、耗时和后悔值；`details.json` 保存 z、o、pi、每次局部求解状态及 continuation 轨迹。

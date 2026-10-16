@@ -1,0 +1,13 @@
+{
+  "variant": "all",
+  "n": 12,
+  "k": 3,
+  "seeds": 3,
+  "penalty": 2.0,
+  "epsilon_h": 0.01,
+  "epsilon_o": 0.1,
+  "starts": 3,
+  "maxiter": 60,
+  "time_limit": 3.0,
+  "output": "results\\entropy_small_20261016"
+}

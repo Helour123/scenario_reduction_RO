@@ -43,6 +43,23 @@ def compare(source,output):
       '|---|---|---|---|---|---|---|---|---|']
     for r in summary:lines.append(f'| {r["framework"]} | {r["contamination"]:.0%} | {r["method"]} | {r["stage"]} | {r["mean_regret"]:.3f} | {r["sd_regret"]:.3f} | {r["mean_seconds"]:.2f} | {r["mean_fractional_z"]:.1f}/{r["mean_fractional_o"]:.1f} | {r["fallback_count"]} |')
     (output/'REPORT.md').write_text('\n'.join(lines),encoding='utf-8')
+    # Print compact tables after every run and when replotting existing results.
+    printed=[]
+    for stage in ['raw','repaired']:
+        printed.extend(['',f'=== {stage.upper()} COMPARISON ===',
+            'Framework Rate Method        Regret(mean+/-SD)   Seconds  Frac(z/o)'])
+        for r in summary:
+            if r['stage'] not in [stage,'hard']:continue
+            printed.append(f'{r["framework"]:9s} {r["contamination"]:4.0%} '
+                f'{r["method"]:13s} {r["mean_regret"]:8.3f}+/-{r["sd_regret"]:<8.3f} '
+                f'{r["mean_seconds"]:7.3f}  '
+                f'{r["mean_fractional_z"]:.1f}/{r["mean_fractional_o"]:.1f}')
+    printed.extend(['','Regret: lower is better. SD is across seeds, not a confidence interval.',
+        'Entropy solutions are local candidates. Raw and repaired models differ.',
+        'Time limits are not strictly matched; inspect details.json for solver termination.'])
+    console='\n'.join(printed)
+    print(console,flush=True)
+    (output/'comparison.txt').write_text(console,encoding='utf-8')
 
 
 if __name__=='__main__':
