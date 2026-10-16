@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.lic
+
+
+.idea/
+.vscode/
+.env
+.env.*

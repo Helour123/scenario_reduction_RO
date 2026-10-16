@@ -1,0 +1,8 @@
+{
+  "python": "3.12.7",
+  "numpy": "1.26.4",
+  "scipy": "1.13.1",
+  "matplotlib": "3.9.2",
+  "solver": "SciPy bundled HiGHS",
+  "validation": "SP/RO small-instance exhaustive optimization; SP weighted quantile vs grid; RO endpoint formula vs independent linprog"
+}
