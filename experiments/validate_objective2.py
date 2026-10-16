@@ -32,3 +32,21 @@ assert abs(x-result.x[0])<1e-7 and abs(v-result.fun)<1e-7
 x,v=optimize(d,np.ones(len(d))/len(d))
 assert v<=total(np.linspace(0,600,6001),d).mean(axis=1).min()+1e-7
 print('Downstream SP quantile and RO LP checks passed')
+
+# Continuous entropy identities, original-model scaling, and zero-tolerance case.
+from entropy_models import entropy, binary_entropy, solve, build, lp, residual
+z=np.array([1.,0.,.25,.75]);q=z/len(z)
+assert abs(entropy(q)-(z.sum()*np.log(len(z))+entropy(z))/len(z))<1e-12
+assert entropy(np.array([0.,1.]))==0 and binary_entropy(np.array([0.,1.]))==0
+assert entropy(np.array([.5,.5]))>0
+for robust in [False,True]:
+    model=build(d,2,robust,.5,1/6,flags)
+    selected=np.array([1.,0.,0.,0.,0.,1.]);excluded=np.zeros(len(d))
+    v=lp(model,selected,excluded)
+    assert residual(model,v)<1e-7
+    m,raw,fixed,info=solve(d,2,robust,.5,1/6,flags,'double',0.,0.,
+                         starts=2,maxiter=10,time_limit=2)
+    assert info['feasible'] and info['fractional_z']==0 and info['fractional_o']==0
+    assert residual(m,fixed)<1e-7
+    assert abs(fixed[m['z0']:m['o0']].sum()-2)<1e-8
+print('Entropy identity, boundary values, continuous zero-tolerance and repair checks passed')

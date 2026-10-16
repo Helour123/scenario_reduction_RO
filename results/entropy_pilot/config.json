@@ -1,0 +1,13 @@
+{
+  "variant": "all",
+  "n": 10,
+  "k": 3,
+  "seeds": 2,
+  "penalty": 2.0,
+  "epsilon_h": 0.01,
+  "epsilon_o": 0.1,
+  "starts": 3,
+  "maxiter": 40,
+  "time_limit": 2.0,
+  "output": "results\\entropy_pilot"
+}

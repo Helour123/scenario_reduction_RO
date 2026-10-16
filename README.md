@@ -90,3 +90,30 @@ python experiments/objective2_newsvendor.py --plot-input results/objective2_news
 ```powershell
 python experiments/validate_objective2.py
 ```
+
+## 连续熵约束版本与统一对比
+
+新增三个脚本：
+
+- `experiments/entropy_models.py`：连续熵模型、局部求解、多起点、支持集提取和 LP 重拟合。
+- `experiments/run_entropy.py`：统一运行数据和参数相同的 MILP 与三个连续配置。
+- `experiments/compare_entropy.py`：已有结果汇总与作图，无需求解模型。
+
+配置含义：`partial` 对 z 加熵约束、允许连续部分删除；`double` 同时对 z/o 加熵约束；`continuation` 逐步收紧 z/o 熵容差。三者均用连续 SLSQP，不在内部调用整数求解器。
+MILP 对照独立使用原有代码，沿用相同数据、质量标记、lambda、剔除预算、成本尺度与 SP/RO 评价集。
+
+```powershell
+python experiments/run_entropy.py --variant all --n 20 --k 4 --seeds 3 --epsilon-h 0.01 --epsilon-o 0.1 --starts 3 --time-limit 10
+python experiments/run_entropy.py --variant double --epsilon-h 0 --epsilon-o 0 --output results/entropy_zero
+python experiments/compare_entropy.py results/entropy_comparison/runs.csv
+```
+
+`--epsilon-h` 是 Objective 1 的质量熵容差；代码使用 `H(z) <= N * epsilon_h`，而 `H_bin(o) <= epsilon_o` 不乘 N。对数为自然对数，`0 log 0 = 0`；实际熵值按精确表达式检查，导数在端点附近截断到 1e-12 以便局部求解。原约束全部保留，内部使用 `a_ij = pi_ij / p_i` 改善数值尺度，输出 JSON 恢复为 pi。
+
+`runs.csv` 明确区分 `raw` 与 `repaired`：前者保留连续解，后者按 z 排序取 K 个代表，对 o>0.5 的非代表按数值排序、在预算内作硬删除，再固定 z/o 用 LP 重拟合运输。因此 repaired 是公平比较硬支持集的一种确定规则，并非连续模型的精确最优恢复。记录支持数、分数 z/o 数、剔除质量、污染与合法质量删除、尾部保留、熵、可行性、耗时和后悔值；`details.json` 保存 z、o、pi、每次局部求解状态及 continuation 轨迹。
+
+SLSQP 仅返回局部候选，没有全局 gap；熵为零仍保留组合难度，不保证能离开硬初始点。多起点包括无熵 LP 解及不使用真实标签构造的硬支持 LP 解，硬解可作为明确记录的 fallback。正容差也不能保证刚好 K 个非零支持。raw RO 使用全部正运输质量支持，不能当成 K 场景 RO 保证；原 proposal 的硬选择保护结论不直接适用于分数 z/o。
+
+时间限制在 SLSQP 迭代边界检查，包含多起点与修复；不是操作系统级硬上限，矩阵构造、LP 和单次迭代可能导致超时。MILP 时间限制仅限制其求解阶段，耗时列包含外围开销，不能据此宣称预算严格一致。原始模型与历史结果保留。
+
+`results/entropy_pilot/` 是 N=10、K=3、两个随机种子的运行与绘图验证，非正式算法优劣结论；正式比较应增加样本量、种子、容差敏感性与求解预算。
